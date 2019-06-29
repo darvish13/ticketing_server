@@ -22,6 +22,13 @@ Route::group([
 
 ], function ($router) {
 
-    Route::get('test', 'testController@test');
+    Route::get('tickets', 'Api\TicketController@getAll');
+    Route::get('userTickets', 'Api\TicketController@getUserTickets');
+    Route::post('tickets', 'Api\TicketController@create');
+    Route::put('tickets', 'Api\TicketController@update');
+    Route::delete('tickets', 'Api\TicketController@delete');
+    Route::post('answer-ticket', 'Api\TicketController@answer');
+
     Route::post('logout', 'Api\AuthController@logout');
+    Route::post('test', 'testController@test');
 });
