@@ -1,7 +1,7 @@
 {
-    "name": "laravel/laravel",
+    "name": "Ticketing Server",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "Test ticketing app for paystar",
     "keywords": [
         "framework",
         "laravel"

@@ -16,13 +16,14 @@ class TicketController extends Controller
     {
         if (auth()->user()->role == 'operator') {
             try {
-                $tickets = Ticket::with('user')->get();
-                return response()->json($tickets);
+                $tickets = Ticket::with('user')
+                    ->orderBy('updated_at', 'desc')
+                    ->get();
 
+                return response()->json($tickets);
             } catch (Illuminate\Database\QueryException $exception) {
                 return response()->json(['error' => $exception], 500);
             }
-
         } else {
             return response()->json(['Error' => 'UnAuthorized'], 401);
         }
@@ -35,9 +36,11 @@ class TicketController extends Controller
     public function getUserTickets()
     {
         try {
-            $tickets = Ticket::with('user')->where('user_id', '=', auth()->user()->id)->get();
+            $tickets = Ticket::with('user')
+                ->where('user_id', '=', auth()->user()->id)
+                ->orderBy('updated_at', 'desc')
+                ->get();
             return response()->json($tickets);
-
         } catch (Illuminate\Database\QueryException $exception) {
             return response()->json(['error' => $exception], 500);
         }
@@ -54,8 +57,9 @@ class TicketController extends Controller
             $ticketData['user_id'] = auth()->user()->id;
             $newTicket = Ticket::create($ticketData);
 
-            return response()->json($newTicket);
+            $newTicket['user'] = $newTicket->user;
 
+            return response()->json($newTicket);
         } catch (Illuminate\Database\QueryException $exception) {
             return response()->json(['error' => $exception], 500);
         }
@@ -66,15 +70,22 @@ class TicketController extends Controller
      * @param [ticketId, status]
      * @return {newTicket}
      */
-    public function update(Request $request)
+    public function update()
     {
         try {
-            $ticket = Ticket::find($request->get('ticket_id'));
-            $ticket->status = $request->get('status');
+            $ticket = Ticket::find(request('id'));
+            $ticket->status = request('status');
             $ticket->save();
 
-            return response()->json($ticket);
-
+            try {
+                $tickets = Ticket::with('user')
+                    ->where('user_id', '=', auth()->user()->id)
+                    ->orderBy('updated_at', 'desc')
+                    ->get();
+                return response()->json($tickets);
+            } catch (Illuminate\Database\QueryException $exception) {
+                return response()->json(['error' => $exception], 500);
+            }
         } catch (Illuminate\Database\QueryException $exception) {
             return response()->json(['error' => $exception], 500);
         }
@@ -84,12 +95,20 @@ class TicketController extends Controller
      * Deletes a ticket
      * @param ticket_id
      */
-    public function delete(Request $request)
+    public function delete()
     {
         try {
-            Ticket::destroy($request->get('ticket_id'));
+            Ticket::destroy(request('id'));
 
-            return response()->json('Ticket Deleted Successfully');
+            try {
+                $tickets = Ticket::with('user')
+                    ->where('user_id', '=', auth()->user()->id)
+                    ->orderBy('updated_at', 'desc')
+                    ->get();
+                return response()->json($tickets);
+            } catch (Illuminate\Database\QueryException $exception) {
+                return response()->json(['error' => $exception], 500);
+            }
         } catch (Illuminate\Database\QueryException $exception) {
             return response()->json(['error' => $exception], 500);
         }
@@ -99,18 +118,26 @@ class TicketController extends Controller
      * Answer a ticket
      * @param [ticket_id, answer]
      */
-    public function answer(Request $request)
+    public function answer()
     {
         if (auth()->user()->role == 'operator') {
 
             try {
-                $ticket = Ticket::find($request->get('ticket_id'));
-                $ticket->answer = $request->get('answer');
+                $ticket = Ticket::find(request('id'));
+                $ticket->answer = request('answer');
                 $ticket->status = 'خاتمه یافته';
                 $ticket->save();
 
-                return response()->json($ticket);
+                try {
+                    $tickets = Ticket::with('user')
+                        ->orderBy('updated_at', 'desc')
+                        ->get();
 
+                    return response()->json($tickets);
+                } catch (Illuminate\Database\QueryException $exception) {
+                    return response()->json(['error' => $exception], 500);
+                }
+                
             } catch (Illuminate\Database\QueryException $exception) {
                 return response()->json(['error' => $exception], 500);
             }
